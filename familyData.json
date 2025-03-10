@@ -1,0 +1,149 @@
+{
+    "familyData": [
+      {
+        "id": "p1",
+        "firstName": "Ben",
+        "lastName": "Solo",
+        "location": "Unknown",
+        "dateOfBirth": "5 ABY",
+        "dateOfDeath": "35 ABY",
+        "generation": 1,
+        "parentIds": ["p3", "p4"],
+        "siblingIds": [],
+        "childrenIds": []
+      },
+      {
+        "id": "p2",
+        "firstName": "Rey",
+        "lastName": "Skywalker",
+        "location": "Jakku, later Tatooine",
+        "dateOfBirth": "15 ABY",
+        "dateOfDeath": null,
+        "generation": 1,
+        "parentIds": [],
+        "siblingIds": [],
+        "childrenIds": []
+      },
+      {
+        "id": "p3",
+        "firstName": "Leia",
+        "lastName": "Organa",
+        "location": "Alderaan, later various Rebel bases",
+        "dateOfBirth": "19 BBY",
+        "dateOfDeath": "35 ABY",
+        "generation": 2,
+        "parentIds": ["p7", "p8"],
+        "siblingIds": ["p5"],
+        "childrenIds": ["p1"]
+      },
+      {
+        "id": "p4",
+        "firstName": "Han",
+        "lastName": "Solo",
+        "location": "Corellia, later various",
+        "dateOfBirth": "32 BBY",
+        "dateOfDeath": "34 ABY",
+        "generation": 2,
+        "parentIds": [],
+        "siblingIds": [],
+        "childrenIds": ["p1"]
+      },
+      {
+        "id": "p5",
+        "firstName": "Luke",
+        "lastName": "Skywalker",
+        "location": "Tatooine, later various",
+        "dateOfBirth": "19 BBY",
+        "dateOfDeath": "34 ABY",
+        "generation": 2,
+        "parentIds": ["p7", "p8"],
+        "siblingIds": ["p3"],
+        "childrenIds": []
+      },
+      {
+        "id": "p6",
+        "firstName": "Mara",
+        "lastName": "Jade",
+        "location": "Unknown",
+        "dateOfBirth": "17 BBY",
+        "dateOfDeath": "40 ABY",
+        "generation": 2,
+        "parentIds": [],
+        "siblingIds": [],
+        "childrenIds": []
+      },
+      {
+        "id": "p7",
+        "firstName": "Anakin",
+        "lastName": "Skywalker",
+        "location": "Tatooine, later Coruscant",
+        "dateOfBirth": "41 BBY",
+        "dateOfDeath": "4 ABY",
+        "generation": 3,
+        "parentIds": ["p9"],
+        "siblingIds": [],
+        "childrenIds": ["p3", "p5"]
+      },
+      {
+        "id": "p8",
+        "firstName": "Padmé",
+        "lastName": "Amidala",
+        "location": "Naboo",
+        "dateOfBirth": "46 BBY",
+        "dateOfDeath": "19 BBY",
+        "generation": 3,
+        "parentIds": ["p10", "p11"],
+        "siblingIds": ["p12"],
+        "childrenIds": ["p3", "p5"]
+      },
+      {
+        "id": "p9",
+        "firstName": "Shmi",
+        "lastName": "Skywalker",
+        "location": "Unknown, later Tatooine",
+        "dateOfBirth": "72 BBY",
+        "dateOfDeath": "22 BBY",
+        "generation": 4,
+        "parentIds": [],
+        "siblingIds": [],
+        "childrenIds": ["p7"]
+      },
+      {
+        "id": "p10",
+        "firstName": "Ruwee",
+        "lastName": "Naberrie",
+        "location": "Naboo",
+        "dateOfBirth": "70 BBY",
+        "dateOfDeath": null,
+        "generation": 4,
+        "parentIds": [],
+        "siblingIds": [],
+        "childrenIds": ["p8", "p12"]
+      },
+      {
+        "id": "p11",
+        "firstName": "Jobal",
+        "lastName": "Naberrie",
+        "location": "Naboo",
+        "dateOfBirth": "71 BBY",
+        "dateOfDeath": null,
+        "generation": 4,
+        "parentIds": [],
+        "siblingIds": [],
+        "childrenIds": ["p8", "p12"]
+      },
+      {
+        "id": "p12",
+        "firstName": "Sola",
+        "lastName": "Naberrie",
+        "location": "Naboo",
+        "dateOfBirth": "49 BBY",
+        "dateOfDeath": null,
+        "generation": 3,
+        "parentIds": ["p10", "p11"],
+        "siblingIds": ["p8"],
+        "childrenIds": []
+      }
+    ]
+  }
+  
