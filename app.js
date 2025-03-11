@@ -220,6 +220,75 @@ function setupTableSorting() {
 }
 
 // ------------------------------
+// Timeline View
+// ------------------------------
+
+// Initialize the timeline view
+function initTimelineView() {
+    const timelineContainer = document.getElementById('timelineContainer');
+    timelineContainer.innerHTML = ''; // Clear existing content
+    
+    // Add the vertical timeline line
+    const timelineLine = document.createElement('div');
+    timelineLine.className = 'timeline-line';
+    timelineContainer.appendChild(timelineLine);
+    
+    // Sort people by birth date (oldest first)
+    const sortedByBirth = [...familyData].sort((a, b) => {
+        return sortStarWarsDate(a.dateOfBirth, b.dateOfBirth, 'asc');
+    });
+    
+    // Create timeline items
+    sortedByBirth.forEach(person => {
+        // Create timeline item container
+        const timelineItem = document.createElement('div');
+        timelineItem.className = 'timeline-item';
+        
+        // Add birth year as the date label
+        const birthYear = extractYearFromStarWarsDate(person.dateOfBirth);
+        const dateLabel = document.createElement('div');
+        dateLabel.className = 'timeline-date';
+        dateLabel.textContent = birthYear;
+        timelineItem.appendChild(dateLabel);
+        
+        // Create the card with person details
+        const timelineCard = document.createElement('div');
+        timelineCard.className = 'timeline-card';
+        
+        // Add person's name, lifespan, and basic info
+        timelineCard.innerHTML = `
+            <div class="person-name">${getFullName(person)}</div>
+            <div class="person-dates">
+                ${formatDate(person.dateOfBirth)} - ${formatDate(person.dateOfDeath)}
+            </div>
+            <div class="person-location">${person.location}</div>
+            <div class="person-generation">${getGenerationName(person.generation)}</div>
+        `;
+        
+        // Add click event to show details
+        timelineCard.addEventListener('click', () => {
+            showPersonDetails(person.id);
+        });
+        
+        timelineItem.appendChild(timelineCard);
+        timelineContainer.appendChild(timelineItem);
+    });
+}
+
+// Helper function to extract year from Star Wars date format
+function extractYearFromStarWarsDate(dateStr) {
+    if (!dateStr) return 'Unknown';
+    
+    const match = dateStr.match(/(\d+)\s+(BBY|ABY)/);
+    if (!match) return dateStr; // Just return original if format doesn't match
+    
+    const year = match[1];
+    const era = match[2];
+    
+    return `${year} ${era}`;
+}
+
+// ------------------------------
 // Person Details Modal
 // ------------------------------
 
