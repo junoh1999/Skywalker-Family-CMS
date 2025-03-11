@@ -250,23 +250,33 @@ function initTreeView() {
         }
         generations[person.generation].push(person);
     });
+
+    // Container for the entire tree structure
+    const treeStructure = document.createElement('div');
+    treeStructure.className = 'tree-structure';
+    treeContainer.appendChild(treeStructure);
     
     // Create the tree structure from oldest (4) to youngest (1) generation
     for (let gen = 4; gen >= 1; gen--) {
         if (!generations[gen]) continue;
         
-        // Create generation row
+        // Create generation section
+        const genSection = document.createElement('div');
+        genSection.className = 'generation-section';
+        
+        // Create generation label
+        const genLabel = document.createElement('div');
+        genLabel.className = 'generation-label';
+        genLabel.textContent = getGenerationName(gen);
+        genSection.appendChild(genLabel);
+        
+        // Create row for person cards
         const genRow = document.createElement('div');
         genRow.className = 'generation-row';
         genRow.setAttribute('data-generation', gen);
         
-        // Add generation label
-        const genLabel = document.createElement('div');
-        genLabel.className = 'generation-label';
-        genLabel.textContent = getGenerationName(gen);
-        genRow.appendChild(genLabel);
-        
-        // Sort people within this generation alphabetically by last name, then first name
+        // Sort people within this generation by family relationships
+        // For simplicity, we'll just sort by last name and first name
         const sortedGeneration = [...generations[gen]].sort((a, b) => {
             if (a.lastName === b.lastName) {
                 return a.firstName.localeCompare(b.firstName);
@@ -280,11 +290,12 @@ function initTreeView() {
             genRow.appendChild(personCard);
         });
         
-        treeContainer.appendChild(genRow);
+        genSection.appendChild(genRow);
+        treeStructure.appendChild(genSection);
     }
     
-    // Add family connections (after all rows are created)
-    drawFamilyConnections();
+    // Wait for the DOM to update before drawing connections
+    setTimeout(drawFamilyConnections, 100);
 }
 
 // Create a person card for the tree view
@@ -295,11 +306,12 @@ function createPersonCard(person) {
     
     const nameElem = document.createElement('div');
     nameElem.className = 'person-name';
-    nameElem.textContent = getFullName(person);
+    nameElem.textContent = `${person.firstName} ${person.lastName}`;
     
     const datesElem = document.createElement('div');
     datesElem.className = 'person-dates';
-    datesElem.textContent = `${person.dateOfBirth || '?'} - ${person.dateOfDeath || 'Present'}`;
+    const deathText = person.dateOfDeath ? ` - ${person.dateOfDeath}` : ' - Present';
+    datesElem.textContent = `${person.dateOfBirth}${deathText}`;
     
     const locationElem = document.createElement('div');
     locationElem.className = 'person-location';
@@ -319,72 +331,63 @@ function createPersonCard(person) {
 
 // Draw connections between family members
 function drawFamilyConnections() {
-    // This is a simplified approach to visualize connections
+    // Clear any existing connections first
+    document.querySelectorAll('.connector').forEach(el => el.remove());
     
-    // Loop through each person to draw connections to their parents
+    // Create an SVG overlay for all the connections
+    const treeContainer = document.getElementById('treeContainer');
+    const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+    svg.setAttribute("class", "connection-svg");
+    svg.style.position = "absolute";
+    svg.style.top = "0";
+    svg.style.left = "0";
+    svg.style.width = "100%";
+    svg.style.height = "100%";
+    svg.style.pointerEvents = "none";
+    svg.style.zIndex = "1";
+    treeContainer.appendChild(svg);
+    
+    // For each person, draw connections to their parents
     familyData.forEach(person => {
         if (person.parentIds.length === 0) return; // Skip if no parents
         
         const personCard = document.querySelector(`.person-card[data-id="${person.id}"]`);
         if (!personCard) return; // Skip if card not found in DOM
         
+        const personRect = personCard.getBoundingClientRect();
+        const containerRect = treeContainer.getBoundingClientRect();
+        
+        // Calculate person's position relative to container
+        const personX = (personRect.left + personRect.width/2) - containerRect.left;
+        const personY = personRect.top - containerRect.top;
+        
         // For each parent, draw a connection
         person.parentIds.forEach(parentId => {
             const parentCard = document.querySelector(`.person-card[data-id="${parentId}"]`);
             if (!parentCard) return; // Skip if parent card not found
             
-            // Get positions for connection points
-            const personRect = personCard.getBoundingClientRect();
             const parentRect = parentCard.getBoundingClientRect();
-            const treeRect = document.getElementById('treeContainer').getBoundingClientRect();
             
-            // Create connection element
-            const connection = document.createElement('div');
-            connection.className = 'family-connection';
+            // Calculate parent's position relative to container
+            const parentX = (parentRect.left + parentRect.width/2) - containerRect.left;
+            const parentY = (parentRect.bottom) - containerRect.top;
             
-            // Calculate relative positions (adjusted to tree container)
-            const startX = (parentRect.left + parentRect.width/2) - treeRect.left;
-            const startY = (parentRect.bottom) - treeRect.top;
-            const endX = (personRect.left + personRect.width/2) - treeRect.left;
-            const endY = personRect.top - treeRect.top;
+            // Create SVG path for connector
+            const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+            path.setAttribute("class", "connector-path");
+            path.setAttribute("fill", "none");
+            path.setAttribute("stroke", "#3498db");
+            path.setAttribute("stroke-width", "2");
             
-            // Set connection path using a linear path
-            // First create a vertical line from parent
-            const verticalLine = document.createElement('div');
-            verticalLine.className = 'connector vertical-connector';
-            verticalLine.style.left = `${startX}px`;
-            verticalLine.style.top = `${startY}px`;
-            verticalLine.style.height = `${Math.max(15, (endY - startY) / 2)}px`; // At least 15px tall
+            // Calculate midpoint Y (halfway between generations)
+            const midY = parentY + (personY - parentY) / 2;
             
-            // Then create a horizontal connector if needed
-            if (Math.abs(startX - endX) > 5) { // Only if there's significant horizontal distance
-                const horizontalLine = document.createElement('div');
-                horizontalLine.className = 'connector horizontal-connector';
-                
-                // Determine which way to draw the line
-                if (startX < endX) {
-                    horizontalLine.style.left = `${startX}px`;
-                    horizontalLine.style.width = `${endX - startX}px`;
-                } else {
-                    horizontalLine.style.left = `${endX}px`;
-                    horizontalLine.style.width = `${startX - endX}px`;
-                }
-                
-                // Position at midpoint of vertical distance
-                horizontalLine.style.top = `${startY + (endY - startY) / 2}px`;
-                document.getElementById('treeContainer').appendChild(horizontalLine);
-            }
+            // Create a path with right angles
+            // Move to parent bottom center, then down, across, up to child
+            const pathData = `M ${parentX} ${parentY} L ${parentX} ${midY} L ${personX} ${midY} L ${personX} ${personY}`;
+            path.setAttribute("d", pathData);
             
-            // Finally the vertical line to the child
-            const verticalLine2 = document.createElement('div');
-            verticalLine2.className = 'connector vertical-connector';
-            verticalLine2.style.left = `${endX}px`;
-            verticalLine2.style.top = `${startY + (endY - startY) / 2}px`;
-            verticalLine2.style.height = `${(endY - startY) / 2}px`;
-            
-            // Add all connectors to the tree container
-            document.getElementById('treeContainer').appendChild(verticalLine);
-            document.getElementById('treeContainer').appendChild(verticalLine2);
+            svg.appendChild(path);
         });
     });
 }
