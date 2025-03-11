@@ -476,4 +476,101 @@ h1 {
     background-color: #2980b9;
     box-shadow: 0 0 0 6px rgba(52, 152, 219, 0.3);
 }
+
+/* Additional Tree View refinements */
+
+/* You can add these to your existing styles.css file */
+
+.tree-container {
+    position: relative;
+    padding: 40px 20px;
+    overflow-x: auto;
+    min-height: 600px;
+}
+
+.generation-row {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 80px; /* More space between generations */
+    position: relative;
+    padding-left: 150px; /* Space for generation label */
+}
+
+.generation-label {
+    position: absolute;
+    left: 20px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-weight: bold;
+    color: #3498db;
+    background-color: white;
+    padding: 8px 15px;
+    border-radius: 20px;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+    z-index: 10;
+}
+
+.person-card {
+    width: 180px;
+    margin: 0 30px; /* More space between cards */
+    padding: 15px;
+    background-color: #ffffff;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.3s;
+    position: relative;
+    z-index: 5; /* Keep cards above connector lines */
+}
+
+.person-card:hover {
+    transform: translateY(-5px) scale(1.05);
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
+    border-color: #3498db;
+    z-index: 10; /* Ensure hovered cards stay on top */
+}
+
+/* Connector styles for family relationships */
+.connector {
+    position: absolute;
+    background-color: #3498db;
+    z-index: 1;
+}
+
+.vertical-connector {
+    width: 2px;
+}
+
+.horizontal-connector {
+    height: 2px;
+}
+
+/* Add this for better person card layout */
+.person-location {
+    font-size: 0.8em;
+    color: #666;
+    margin-top: 5px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Add subtle styling for different generations */
+.generation-row[data-generation="1"] .person-card {
+    border-left: 4px solid #3498db; /* Current generation */
+}
+
+.generation-row[data-generation="2"] .person-card {
+    border-left: 4px solid #9b59b6; /* Parents */
+}
+
+.generation-row[data-generation="3"] .person-card {
+    border-left: 4px solid #2ecc71; /* Grandparents */
+}
+
+.generation-row[data-generation="4"] .person-card {
+    border-left: 4px solid #f1c40f; /* Great-grandparents */
+}
 }

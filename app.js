@@ -1,6 +1,9 @@
 // Main application JavaScript file
+
+// Load family data from JSON file
 let familyData = [];
 
+// Initialize the application when the DOM is loaded
 document.addEventListener('DOMContentLoaded', async () => {
     try {
         // Fetch the JSON file
@@ -10,13 +13,12 @@ document.addEventListener('DOMContentLoaded', async () => {
         // Set the familyData from the JSON response
         familyData = data.familyData;
         
-        // Initialize the table view once data is loaded
+        // Initialize the table view (default view)
         initTableView();
     } catch (error) {
         console.error('Error loading family data:', error);
     }
 });
-
 
 // ------------------------------
 // Utility Functions
@@ -49,6 +51,19 @@ function getPersonById(id) {
     return familyData.find(person => person.id === id);
 }
 
+// Helper function to extract year from Star Wars date format
+function extractYearFromStarWarsDate(dateStr) {
+    if (!dateStr) return 'Unknown';
+    
+    const match = dateStr.match(/(\d+)\s+(BBY|ABY)/);
+    if (!match) return dateStr; // Just return original if format doesn't match
+    
+    const year = match[1];
+    const era = match[2];
+    
+    return `${year} ${era}`;
+}
+
 // ------------------------------
 // View Management
 // ------------------------------
@@ -60,6 +75,10 @@ const timelineViewBtn = document.getElementById('timelineViewBtn');
 const tableView = document.getElementById('tableView');
 const treeView = document.getElementById('treeView');
 const timelineView = document.getElementById('timelineView');
+
+// Track whether tree and timeline views have been initialized
+let treeInitialized = false;
+let timelineInitialized = false;
 
 // View switching function
 function switchView(viewName) {
@@ -99,10 +118,6 @@ tableViewBtn.addEventListener('click', () => switchView('table'));
 treeViewBtn.addEventListener('click', () => switchView('tree'));
 timelineViewBtn.addEventListener('click', () => switchView('timeline'));
 
-// Track whether tree and timeline views have been initialized
-let treeInitialized = false;
-let timelineInitialized = false;
-
 // ------------------------------
 // Table View
 // ------------------------------
@@ -110,7 +125,6 @@ let timelineInitialized = false;
 // Variables for sorting
 let currentSortColumn = 'firstName';
 let sortDirection = 'asc';
-
 
 // Initialize the table view
 function initTableView() {
@@ -220,6 +234,162 @@ function setupTableSorting() {
 }
 
 // ------------------------------
+// Tree View
+// ------------------------------
+
+// Initialize the tree view
+function initTreeView() {
+    const treeContainer = document.getElementById('treeContainer');
+    treeContainer.innerHTML = ''; // Clear existing content
+    
+    // Group people by generation
+    const generations = {};
+    familyData.forEach(person => {
+        if (!generations[person.generation]) {
+            generations[person.generation] = [];
+        }
+        generations[person.generation].push(person);
+    });
+    
+    // Create the tree structure from oldest (4) to youngest (1) generation
+    for (let gen = 4; gen >= 1; gen--) {
+        if (!generations[gen]) continue;
+        
+        // Create generation row
+        const genRow = document.createElement('div');
+        genRow.className = 'generation-row';
+        genRow.setAttribute('data-generation', gen);
+        
+        // Add generation label
+        const genLabel = document.createElement('div');
+        genLabel.className = 'generation-label';
+        genLabel.textContent = getGenerationName(gen);
+        genRow.appendChild(genLabel);
+        
+        // Sort people within this generation alphabetically by last name, then first name
+        const sortedGeneration = [...generations[gen]].sort((a, b) => {
+            if (a.lastName === b.lastName) {
+                return a.firstName.localeCompare(b.firstName);
+            }
+            return a.lastName.localeCompare(b.lastName);
+        });
+        
+        // Add person cards for this generation
+        sortedGeneration.forEach(person => {
+            const personCard = createPersonCard(person);
+            genRow.appendChild(personCard);
+        });
+        
+        treeContainer.appendChild(genRow);
+    }
+    
+    // Add family connections (after all rows are created)
+    drawFamilyConnections();
+}
+
+// Create a person card for the tree view
+function createPersonCard(person) {
+    const card = document.createElement('div');
+    card.className = 'person-card';
+    card.setAttribute('data-id', person.id);
+    
+    const nameElem = document.createElement('div');
+    nameElem.className = 'person-name';
+    nameElem.textContent = getFullName(person);
+    
+    const datesElem = document.createElement('div');
+    datesElem.className = 'person-dates';
+    datesElem.textContent = `${person.dateOfBirth || '?'} - ${person.dateOfDeath || 'Present'}`;
+    
+    const locationElem = document.createElement('div');
+    locationElem.className = 'person-location';
+    locationElem.textContent = person.location.split(',')[0]; // Just show first part of location
+    
+    card.appendChild(nameElem);
+    card.appendChild(datesElem);
+    card.appendChild(locationElem);
+    
+    // Add click event to show details
+    card.addEventListener('click', () => {
+        showPersonDetails(person.id);
+    });
+    
+    return card;
+}
+
+// Draw connections between family members
+function drawFamilyConnections() {
+    // This is a simplified approach to visualize connections
+    
+    // Loop through each person to draw connections to their parents
+    familyData.forEach(person => {
+        if (person.parentIds.length === 0) return; // Skip if no parents
+        
+        const personCard = document.querySelector(`.person-card[data-id="${person.id}"]`);
+        if (!personCard) return; // Skip if card not found in DOM
+        
+        // For each parent, draw a connection
+        person.parentIds.forEach(parentId => {
+            const parentCard = document.querySelector(`.person-card[data-id="${parentId}"]`);
+            if (!parentCard) return; // Skip if parent card not found
+            
+            // Get positions for connection points
+            const personRect = personCard.getBoundingClientRect();
+            const parentRect = parentCard.getBoundingClientRect();
+            const treeRect = document.getElementById('treeContainer').getBoundingClientRect();
+            
+            // Create connection element
+            const connection = document.createElement('div');
+            connection.className = 'family-connection';
+            
+            // Calculate relative positions (adjusted to tree container)
+            const startX = (parentRect.left + parentRect.width/2) - treeRect.left;
+            const startY = (parentRect.bottom) - treeRect.top;
+            const endX = (personRect.left + personRect.width/2) - treeRect.left;
+            const endY = personRect.top - treeRect.top;
+            
+            // Set connection path using a linear path
+            // First create a vertical line from parent
+            const verticalLine = document.createElement('div');
+            verticalLine.className = 'connector vertical-connector';
+            verticalLine.style.left = `${startX}px`;
+            verticalLine.style.top = `${startY}px`;
+            verticalLine.style.height = `${Math.max(15, (endY - startY) / 2)}px`; // At least 15px tall
+            
+            // Then create a horizontal connector if needed
+            if (Math.abs(startX - endX) > 5) { // Only if there's significant horizontal distance
+                const horizontalLine = document.createElement('div');
+                horizontalLine.className = 'connector horizontal-connector';
+                
+                // Determine which way to draw the line
+                if (startX < endX) {
+                    horizontalLine.style.left = `${startX}px`;
+                    horizontalLine.style.width = `${endX - startX}px`;
+                } else {
+                    horizontalLine.style.left = `${endX}px`;
+                    horizontalLine.style.width = `${startX - endX}px`;
+                }
+                
+                // Position at midpoint of vertical distance
+                horizontalLine.style.top = `${startY + (endY - startY) / 2}px`;
+                document.getElementById('treeContainer').appendChild(horizontalLine);
+            }
+            
+            // Finally the vertical line to the child
+            const verticalLine2 = document.createElement('div');
+            verticalLine2.className = 'connector vertical-connector';
+            verticalLine2.style.left = `${endX}px`;
+            verticalLine2.style.top = `${startY + (endY - startY) / 2}px`;
+            verticalLine2.style.height = `${(endY - startY) / 2}px`;
+            
+            // Add all connectors to the tree container
+            document.getElementById('treeContainer').appendChild(verticalLine);
+            document.getElementById('treeContainer').appendChild(verticalLine2);
+        });
+    });
+}
+
+// ------------------------------
 // Timeline View
 // ------------------------------
 
@@ -273,19 +443,6 @@ function initTimelineView() {
         timelineItem.appendChild(timelineCard);
         timelineContainer.appendChild(timelineItem);
     });
-}
-
-// Helper function to extract year from Star Wars date format
-function extractYearFromStarWarsDate(dateStr) {
-    if (!dateStr) return 'Unknown';
-    
-    const match = dateStr.match(/(\d+)\s+(BBY|ABY)/);
-    if (!match) return dateStr; // Just return original if format doesn't match
-    
-    const year = match[1];
-    const era = match[2];
-    
-    return `${year} ${era}`;
 }
 
 // ------------------------------
